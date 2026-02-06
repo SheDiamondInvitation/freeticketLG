@@ -76,6 +76,42 @@
       z-index: 1;
     }
 
+  /* ===============================
+   VIDEO SLIDE (SLIDE 4)
+================================ */
+
+/* Make slide act as video container */
+.video-slide {
+  position: relative;
+  overflow: hidden;
+  background: none !important; /* remove image bg */
+}
+
+/* Video fills entire slide */
+.slide-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Disable default slide overlay */
+.video-slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1;
+}
+
+/* Ensure text stays above video */
+.video-slide .slide-text {
+  position: relative;
+  z-index: 2;
+}
+
     /* TEXT ON TOP */
     .slide-text {
       position: relative;
@@ -230,12 +266,15 @@
           </div>
         </section>
 
-        <section class="slide" style="background-image:url('image4.jpg')">
-          <div class="slide-text">
-            <h2>Next SheDiamond Event</h2>
-            <p>Join us for the next SheDiamond experience, a time of inspiration, networking, and empowerment designed to help you shine brighter in every area of life.</p>
-          </div>
-        </section>
+       <section class="slide video-slide">
+  <video class="slide-video" autoplay muted loop playsinline>
+    <source src="video4.mp4" type="video/mp4">
+  </video>
+  <div class="slide-text">
+    <h2>Next SheDiamond Event</h2>
+    <p>Join us for the next SheDiamond experience, a time of inspiration, networking, and empowerment designed to help you shine brighter in every area of life.</p>
+  </div>
+</section>
       </div>
     </div>
 
@@ -255,17 +294,57 @@
   // --- Slider ---
   let slideIndex = 0;
   const slideCount = slider.children.length;
-  function goTo(i){ slideIndex=(i+slideCount)%slideCount; slider.style.transform=`translateX(-${slideIndex*100}%)`; }
-  setInterval(()=>goTo(slideIndex+1), SLIDE_INTERVAL_MS);
+  const video = document.querySelector('.slide-video');
 
+  // --- Swipe variables ---
+  let startX = 0;
+  let endX = 0;
+  const SWIPE_THRESHOLD = 50; // minimum swipe distance in pixels
 
-    // --- Handle button click ---
-    chatBtn.addEventListener('click', () => {
-      // Redirect immediately
-      window.open(WHATSAPP_LINK, '_blank');
+  function goTo(i){
+    slideIndex = (i + slideCount) % slideCount;
+    slider.style.transform = `translateX(-${slideIndex * 100}%)`;
 
-    });
+    if (slideIndex === 3 && video) {
+      video.play();
+    } else if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }
 
+  setInterval(() => goTo(slideIndex + 1), SLIDE_INTERVAL_MS);
+
+  // --- Swipe Support ---
+  slider.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+  }, { passive: true });
+
+  slider.addEventListener('touchmove', (e) => {
+    endX = e.touches[0].clientX;
+  }, { passive: true });
+
+  slider.addEventListener('touchend', () => {
+    const diff = startX - endX;
+
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+      if (diff > 0) {
+        // Swipe left → next slide
+        goTo(slideIndex + 1);
+      } else {
+        // Swipe right → previous slide
+        goTo(slideIndex - 1);
+      }
+    }
+
+    startX = 0;
+    endX = 0;
+  });
+
+  // --- Handle button click ---
+  chatBtn.addEventListener('click', () => {
+    window.open(WHATSAPP_LINK, '_blank');
+  });
 })();
 </script>
 </body>
